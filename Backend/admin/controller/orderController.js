@@ -155,13 +155,13 @@ exports.getTotalProductQuantity = async (req, res) => {
 
 exports.getWeeklyProductOrder = async (req, res) => {
   try {
-    const currentDate = new Date();
-    const sevenDaysAgo = new Date(currentDate);
-    sevenDaysAgo.setDate(currentDate.getDate() - 6);
+    const startOfWeek = new Date();
+    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay()); // Start of the week (Sunday)
+    startOfWeek.setHours(0, 0, 0, 0); // Set time to the start of the day
 
-    // Set both dates to the start of the day
-    currentDate.setHours(23, 59, 59, 999); // End of the day
-    sevenDaysAgo.setHours(0, 0, 0, 0); // Start of the day
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(endOfWeek.getDate() + 6); // End of the week (Saturday)
+    endOfWeek.setHours(23, 59, 59, 999); // Set time to the end of the day
 
     const result = await recivedOrder.aggregate([
       {
@@ -170,8 +170,8 @@ exports.getWeeklyProductOrder = async (req, res) => {
       {
         $match: {
           createdAt: {
-            $gte: sevenDaysAgo,
-            $lte: currentDate,
+            $gte: startOfWeek,
+            $lte: endOfWeek,
           },
         },
       },
@@ -191,51 +191,7 @@ exports.getWeeklyProductOrder = async (req, res) => {
 
     res.status(200).json(result.length ? result[0] : { totalQuantity: 0 });
   } catch (error) {
-    console.error("Error fetching product quantity:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-
-exports.getcurrentDateProductOrder = async (req, res) => {
-  try {
-    const currentDate = new Date();
-    const sevenDaysAgo = new Date(currentDate);
-    sevenDaysAgo.setDate(currentDate.getDate());
-
-    // Set both dates to the start of the day
-    currentDate.setHours(23, 59, 59, 999); // End of the day
-    sevenDaysAgo.setHours(0, 0, 0, 0); // Start of the day
-
-    const result = await recivedOrder.aggregate([
-      {
-        $unwind: "$products",
-      },
-      {
-        $match: {
-          createdAt: {
-            $gte: sevenDaysAgo,
-            $lte: currentDate,
-          },
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          totalQuantity: { $sum: "$products.quantity" },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          totalQuantity: 1,
-        },
-      },
-    ]);
-
-    res.status(200).json(result.length ? result[0] : { totalQuantity: 0 });
-  } catch (error) {
-    console.error("Error fetching product quantity:", error);
+    console.error("Error fetching weekly product quantity:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

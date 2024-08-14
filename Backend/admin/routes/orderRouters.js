@@ -15,10 +15,4 @@ router.get(
   order.getWeeklyProductOrder
 );
 
-
-router.get(
-  "/products/addkiyahua/TotaldaysProducts",
-  order.getcurrentDateProductOrder
-);
-
 module.exports = router;

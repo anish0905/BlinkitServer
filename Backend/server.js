@@ -1,19 +1,7 @@
 const express = require("express");
-const dotenv = require("dotenv");
+const dotenv = require("dotenv").config();
 const connectDB = require("./config/db");
 const cors = require("cors");
-
-// Load environment variables
-dotenv.config();
-
-// Connect to the database
-connectDB();
-
-const app = express();
-app.use(express.json());
-app.use(cors());
-
-// Import routes
 const userRoutes = require("./user/routes/userRoutes");
 const productRoutes = require("./user/routes/productRoutes");
 // const categoryRoutes = require("./user/routes/categoryRoutes");
@@ -27,31 +15,53 @@ const admin = require("./admin/routes/userRoutes");
 const vendor = require("./admin/routes/vendorDetailsRouter");
 const order = require("./admin/routes/orderRouters");
 const deliveryRoutes = require("./deliveryBoy/routes/usersRoutes");
+const path = require('path');
 
+const banner = require("./admin/routes/bannerRouters");
+connectDB();
+const app = express();
+app.use(express.json());
+app.use(cors());
 // Home route for admin routes
+// Serve static files from the "uploads" directory
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.get("/", (req, res) => {
   res.send("API is running successfully");
 });
-
 // Routes
 app.use("/api/users", userAddress);
+
 app.use("/user", userRoutes);
+
+// Use the product routes
 app.use("/api", productRoutes);
-// Use the cart routes
+
+// // Use the cart routes
 app.use("/api/cart", addToCartRoutes);
+
 app.use("/api/products", productOrderRoutes);
-// Vender
+
+//Vender
 app.use("/api/vendor", vendorRoutes);
 app.use("/api/vendor", vendorAddProducts);
 app.use("/api/vendor", recivedVendororder);
 app.use("/api/vendor/qty", recivedVendororder);
+
 app.use("/api/vendor", vendor);
-// Admin
+
+//admin
+
 app.use("/api/admin", admin);
 app.use("/api/admin", order);
-// Delivery boys Users
+app.use("/api/admin",banner);
+
+//deliver boys Users
+
 app.use("/api/deliveryBoys", deliveryRoutes);
-// Use the category routes
+
+// // Home route for admin routes
+
+// // Use the category routes
 // app.use("/api/categories", categoryRoutes);
 
 const port = process.env.PORT || 5000;
